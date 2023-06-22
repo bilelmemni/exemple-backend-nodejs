@@ -15,7 +15,7 @@ router.post('/registre',async(req,res)=>{
     usr=new User(data);//create insctance
     
     salt=bcrypt.genSaltSync(10);//crypto pssword
-    cryotedPass= await bcrypt.hashSync(data.password , salt)//crypto pssword
+    cryotedPass= await bcrypt.hashSync(data.password ,salt)//crypto pssword
     usr.password=cryotedPass
 
      usr.save()//saved 
@@ -32,7 +32,7 @@ router.post('/registre',async(req,res)=>{
 
 });
 
-router.post('/login',async (req,res)=>{
+router.post('/login1',async (req,res)=>{
     try {
        data=req.body;//1 read data
        user=await User.findOne({email:data.email})//2 test email
@@ -61,6 +61,43 @@ router.post('/login',async (req,res)=>{
     } catch (error) {
         res.status(400).send(error)
     }
+
+})
+router.post('/login' , (req, res)=>{
+    
+    let data = req.body;
+
+    User.findOne({email: data.email})
+        .then(
+            (author)=>{
+                let valid = bcrypt.compareSync(data.password , author.password);
+                if(!valid){
+                    res.send('email or password invalid');
+                }else{
+
+                    let payload = {
+                        _id: author._id,
+                        email: author.email,
+                        fullname: author.name + ' ' + author.lastname
+                    }
+
+                    let token = jwt.sign(payload , '123456789');
+
+                    res.send({ myToken: token })
+
+                }
+
+            }
+
+
+        )
+        .catch(
+            err=>{
+                res.send(err);
+            }
+        )
+
+
 
 })
 
